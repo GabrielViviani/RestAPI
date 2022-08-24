@@ -1,7 +1,7 @@
 package main
 
 import (
-	"exemplo/GO-API/controllers"
+	"exemplo/GO-API/handlers"
 	"exemplo/GO-API/models"
 
 	"github.com/labstack/echo/v4"
@@ -16,13 +16,20 @@ func main() {
 	srvr.Use(middleware.Logger())
 	srvr.Use(middleware.Recover())
 
+	srvr.Use(middleware.CORS())
+
+	srvr.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"Access-Control-Allow-Origin", "*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
+
 	models.Connect()
 
-	srvr.GET("/books", controllers.FindBooks)
-	srvr.GET("/books/:id", controllers.FindBook)
-	srvr.POST("/books", controllers.CreateBook)
-	srvr.PATCH("/books/:id", controllers.UpdateBook)
-	srvr.DELETE("/books/:id", controllers.DeleteBook)
+	srvr.GET("/books", handlers.FindBooks)
+	srvr.GET("/books/:id", handlers.FindBook)
+	srvr.POST("/books", handlers.CreateBook)
+	srvr.PATCH("/books/:id", handlers.UpdateBook)
+	srvr.DELETE("/books/:id", handlers.DeleteBook)
 
 	srvr.Logger.Fatal(srvr.Start(":8080"))
 }

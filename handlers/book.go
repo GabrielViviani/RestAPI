@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"exemplo/GO-API/models"
@@ -79,7 +79,7 @@ func UpdateBook(context echo.Context) error {
 	var input UpdateBookInput
 
 	if err := context.Bind(&input); err != nil {
-		return context.JSON(http.StatusInternalServerError, map[string]string{
+		return context.JSON(http.StatusBadRequest, map[string]string{
 			"Erro encontrado": err.Error(),
 		})
 
