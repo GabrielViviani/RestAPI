@@ -12,7 +12,7 @@ func main() {
 	// Inicializando o servidor com Echo
 
 	srvr := echo.New()
-
+	
 	srvr.Use(middleware.Logger())
 	srvr.Use(middleware.Recover())
 
@@ -26,9 +26,9 @@ func main() {
 	models.Connect()
 
 	srvr.GET("/books", handlers.FindBooks)
-	srvr.GET("/books/:id", handlers.FindBook)
-	srvr.POST("/books", handlers.CreateBook)
-	srvr.PATCH("/books/:id", handlers.UpdateBook)
+	srvr.GET("/books/", handlers.FindBook)
+	srvr.POST("/books/:id", handlers.CreateBook)
+	srvr.PUT("/books/", handlers.UpdateBook)
 	srvr.DELETE("/books/:id", handlers.DeleteBook)
 
 	srvr.Logger.Fatal(srvr.Start(":8080"))
