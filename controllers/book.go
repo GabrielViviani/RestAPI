@@ -1,15 +1,61 @@
-package controllers
+package handlers
 
 import (
 	"exemplo/GO-API/models"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
+
+func ListBooks(context echo.Context) error {
+	var books []models.Book
+	if err := models.DB.Find(&books).Error; err != nil {
+		return context.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	context.JSON(http.StatusOK, books)
+	return nil
+
+}
 
 type CreateBookInput struct {
 	Title  string `json:"title" binding:"required"`
 	Author string `json:"author" binding:"required"`
+}
+
+func CreateBook(context echo.Context) error {
+	// Valida a entrada
+	var input CreateBookInput
+	if err := context.Bind(&input); err != nil {
+		context.JSON(http.StatusBadRequest, err.Error())
+		return err
+	}
+
+	book := models.Book{Title: input.Title, Author: input.Author}
+
+	err := models.DB.Create(&book).Error
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	context.JSON(http.StatusCreated, echo.Map{
+		"Livro criado com sucesso": book,
+	})
+	return nil
+}
+
+//Localizar ID do livro
+//Achar um livro
+
+func FindBook(context echo.Context) error {
+	// Achar um modelo caso exista
+	var book models.Book
+	if err := models.DB.Where("id = ?", context.Param("id")).First(&book).Error; err != nil {
+		return context.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	context.JSON(http.StatusOK, book)
+	return nil
 }
 
 type UpdateBookInput struct {
@@ -17,78 +63,50 @@ type UpdateBookInput struct {
 	Author string `json:"author"`
 }
 
-// GET /books
-// Find all books
-
-func CreateBook(c *gin.Context) {
-	// Valida a entrada
-	var input CreateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
-		return
-	}
-	// Criar livro
-
-	book := models.Book{Title: input.Title, Author: input.Author}
-	models.DB.Create(&book)
-
-	c.JSON(http.StatusOK, gin.H{"data": book})
-}
-
-func FindBooks(c *gin.Context) {
-	var books []models.Book
-	models.DB.Find(&books)
-
-	c.JSON(http.StatusOK, gin.H{"data": books})
-}
-
-//Localizar ID do livro
-//Achar um livro
-
-func FindBook(c *gin.Context) {
-	// Achar um modelo caso exista
-	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"erro": "Registro não encontrado!"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": book})
-}
-
 //PATCH /books/:id
 // Atualiza um livro
 
-func UpdateBook(c *gin.Context) {
+func UpdateBook(context echo.Context) error {
 	// Acha um modelo caso exista
+
 	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Registro não encontrado!"})
-		return
+	if err := models.DB.Where("id = ?", context.Param("id")).First(&book).Error; err != nil {
+		return context.JSON(http.StatusBadRequest, err.Error())
+
 	}
 
 	// Validar input
 	var input UpdateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	if err := context.Bind(&input); err != nil {
+		return context.JSON(http.StatusBadRequest, map[string]string{
+			"Erro encontrado": err.Error(),
+		})
+
 	}
 
-	models.DB.Model(&book).Updates(input)
+	UpdateBook := models.Book{Title: input.Title, Author: input.Author}
 
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	if err := models.DB.Model(&book).Where("id = ?", context.Param("id")).Updates(&UpdateBook).Error; err != nil {
+		return context.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	context.JSON(http.StatusOK, book)
+	return nil
 }
 
-//DELETE /books/:id
 // Deleta um registro de livro
-func DeleteBook(c *gin.Context) {
+
+func DeleteBook(context echo.Context) error {
 	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"erro": "Registro não encontrado!"})
-		return
+	if err := models.DB.Where("id = ?", context.Param("id")).First(&book).Error; err != nil {
+		context.JSON(http.StatusBadRequest, err.Error())
+		return err
 	}
 
-	models.DB.Delete(&book)
-
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	if err := models.DB.Delete(&book); err != nil {
+		context.JSON(http.StatusInternalServerError, err)
+	}
+	context.JSON(http.StatusOK, "Registro deletado")
+	return nil
 }
