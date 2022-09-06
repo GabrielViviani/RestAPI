@@ -1,22 +1,35 @@
 package main
 
 import (
-	"exemplo/GO-API/controllers"
+	"exemplo/GO-API/handlers"
 	"exemplo/GO-API/models"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
-	r := gin.Default()
+	// Inicializando o servidor com Echo
+
+	srvr := echo.New()
+	
+	srvr.Use(middleware.Logger())
+	srvr.Use(middleware.Recover())
+
+	srvr.Use(middleware.CORS())
+
+	srvr.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"Access-Control-Allow-Origin", "*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	models.Connect()
 
-	r.GET("/books", controllers.FindBooks)
-	r.GET("/books/:id", controllers.FindBook)
-	r.POST("/books", controllers.CreateBook)
-	r.PATCH("/books/:id", controllers.UpdateBook)
-	r.DELETE("/books/:id", controllers.DeleteBook)
+	srvr.GET("/ListBooks", handlers.ListBooks)
+	srvr.GET("/FindBook/:id", handlers.FindBook)
+	srvr.POST("/CreateBooks/", handlers.CreateBook)
+	srvr.PATCH("/UpdateBooks/:id", handlers.UpdateBook)
+	srvr.DELETE("/books/:id", handlers.DeleteBook)
 
-	r.Run()
+	srvr.Logger.Fatal(srvr.Start(":8080"))
 }
