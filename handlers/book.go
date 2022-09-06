@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func FindBooks(context echo.Context) error {
+func ListBooks(context echo.Context) error {
 	var books []models.Book
 	if err := models.DB.Find(&books).Error; err != nil {
 		return context.JSON(http.StatusInternalServerError, err.Error())

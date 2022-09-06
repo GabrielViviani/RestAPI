@@ -25,10 +25,10 @@ func main() {
 
 	models.Connect()
 
-	srvr.GET("/books", handlers.FindBooks)
-	srvr.GET("/books/", handlers.FindBook)
-	srvr.POST("/books/:id", handlers.CreateBook)
-	srvr.PUT("/books/", handlers.UpdateBook)
+	srvr.GET("/ListBooks", handlers.ListBooks)
+	srvr.GET("/FindBook/:id", handlers.FindBook)
+	srvr.POST("/CreateBooks/", handlers.CreateBook)
+	srvr.PATCH("/UpdateBooks/:id", handlers.UpdateBook)
 	srvr.DELETE("/books/:id", handlers.DeleteBook)
 
 	srvr.Logger.Fatal(srvr.Start(":8080"))
